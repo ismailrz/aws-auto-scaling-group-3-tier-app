@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+aws_region = "us-east-1"
+
+# --- No domain (default) ---
+use_domain = false
+
+# --- With a domain, instead ---
+# use_domain  = true
+# domain_name = "example.com"   # must already have a hosted zone in Route 53
+
+# Golden AMIs baked via deploy/backend/bootstrap-ami.sh and
+# deploy/frontend/bootstrap-ami.sh — see terraform/README.md for the
+# no-domain ordering note before filling these in.
+backend_ami_id  = "ami-XXXXXXXXXXXXXXXXX"
+frontend_ami_id = "ami-YYYYYYYYYYYYYYYYY"

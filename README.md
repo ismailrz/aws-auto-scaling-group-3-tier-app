@@ -48,3 +48,5 @@ App at http://localhost:3000.
 ## Deploying to AWS (Auto Scaling Groups)
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full production-grade walkthrough — VPC/subnets, RDS Multi-AZ, golden AMIs, Launch Templates, ALB host-based routing, and the Auto Scaling Group + target-tracking + instance-refresh setup for both tiers. The systemd unit files and bootstrap/user-data scripts it references live under [`deploy/`](./deploy).
+
+Prefer infrastructure-as-code? [`terraform/`](./terraform) provisions the same architecture declaratively — see [`terraform/README.md`](./terraform/README.md).

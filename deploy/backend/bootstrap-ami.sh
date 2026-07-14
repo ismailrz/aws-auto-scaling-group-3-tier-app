@@ -6,7 +6,7 @@ set -euo pipefail
 
 REPO_URL="git@github.com:ismailrz/aws-auto-scaling-group-3-tier-app.git"
 
-sudo dnf install -y python3.12 python3.12-pip git
+sudo dnf install -y python3.12 python3.12-pip git jq
 
 id -u todo &>/dev/null || sudo useradd --system --create-home --home-dir /opt/todo --shell /sbin/nologin todo
 
