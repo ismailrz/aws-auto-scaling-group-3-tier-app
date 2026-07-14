@@ -1,0 +1,55 @@
+flowchart TB
+    Browser["Browser"]
+    R53["Route 53<br/>app.yourdomain.com / api.yourdomain.com"]
+
+    Browser --> R53
+    R53 --> ALB
+
+    subgraph VPC["VPC 10.0.0.0/16"]
+        direction TB
+
+        subgraph Public["Public subnets (2 AZs)"]
+            ALB["Application Load Balancer<br/>host-based routing, TLS via ACM"]
+            NAT["NAT Gateway"]
+        end
+
+        subgraph AZa["AZ-a — private-app subnet"]
+            FE1["Frontend EC2<br/>Nitro node-server :3000"]
+            BE1["Backend EC2<br/>uvicorn :8000"]
+        end
+
+        subgraph AZb["AZ-b — private-app subnet"]
+            FE2["Frontend EC2<br/>Nitro node-server :3000"]
+            BE2["Backend EC2<br/>uvicorn :8000"]
+        end
+
+        subgraph DBSubnets["Private-db subnets (2 AZs)"]
+            RDS[("RDS PostgreSQL<br/>Multi-AZ")]
+        end
+    end
+
+    SM["Secrets Manager<br/>DATABASE_URL"]
+
+    ALB -->|"Host: app.*"| FE1
+    ALB -->|"Host: app.*"| FE2
+    ALB -->|"Host: api.*"| BE1
+    ALB -->|"Host: api.*"| BE2
+
+    BE1 --> RDS
+    BE2 --> RDS
+
+    FE1 -.-> NAT
+    FE2 -.-> NAT
+    BE1 -.-> NAT
+    BE2 -.-> NAT
+
+    SM -.->|"GetSecretValue"| BE1
+    SM -.->|"GetSecretValue"| BE2
+
+    ASGFE{{"ASG: todo-frontend<br/>min 2 / max 4<br/>target: avg CPU 50%"}}
+    ASGBE{{"ASG: todo-backend<br/>min 2 / max 6<br/>target: req count/target"}}
+
+    ASGFE -.->|manages| FE1
+    ASGFE -.->|manages| FE2
+    ASGBE -.->|manages| BE1
+    ASGBE -.->|manages| BE2

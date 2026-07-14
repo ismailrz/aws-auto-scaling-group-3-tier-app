@@ -1,0 +1,20 @@
+[Unit]
+Description=Todo frontend (TanStack Start / Nitro node-server)
+After=network.target
+
+[Service]
+Type=simple
+User=todo
+Group=todo
+WorkingDirectory=/opt/todo/frontend
+EnvironmentFile=/etc/todo-frontend.env
+ExecStart=/usr/bin/node /opt/todo/frontend/.output/server/index.mjs
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/todo/frontend
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -2,6 +2,8 @@
 
 A minimal Todo CRUD app used to practice deploying a 3-tier architecture behind an AWS Auto Scaling Group (frontend ASG + backend ASG + RDS Postgres).
 
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the AWS Auto Scaling Group deployment guide.
+
 ## Structure
 
 ```
@@ -43,11 +45,6 @@ npm run dev
 
 App at http://localhost:3000.
 
-## Deploying to EC2 (practice target)
+## Deploying to AWS (Auto Scaling Groups)
 
-Both tiers are plain processes (no Docker) so they can run under `systemd` on EC2 instances inside their own Auto Scaling Groups:
-
-- **Backend ASG**: run `uvicorn app.main:app --host 0.0.0.0 --port 8000` behind an ALB, pointed at an RDS Postgres instance via `DATABASE_URL`.
-- **Frontend ASG**: run `npm run build && node .output/server/index.mjs` (Nitro's `node-server` preset) behind its own ALB, with `VITE_API_URL` pointed at the backend ALB's DNS name (baked in at build time).
-- Both apps expose `/health`-style responses (backend: `/health`, frontend: `/` returns 200) suitable for ALB target group health checks.
-# aws-auto-scaling-group-3-tier-app
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full production-grade walkthrough — VPC/subnets, RDS Multi-AZ, golden AMIs, Launch Templates, ALB host-based routing, and the Auto Scaling Group + target-tracking + instance-refresh setup for both tiers. The systemd unit files and bootstrap/user-data scripts it references live under [`deploy/`](./deploy).
