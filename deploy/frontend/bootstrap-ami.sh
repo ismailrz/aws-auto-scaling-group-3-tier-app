@@ -5,13 +5,14 @@
 #
 # VITE_API_URL is a Vite build-time env var — it gets inlined into the client
 # bundle, so it MUST point at the real backend address here, before
-# `npm run build`. Use your real API domain if you have one
-# (https://api.yourdomain.com), otherwise the ALB's own DNS name
-# (http://<your-alb-dns-name>, no trailing path) — see DEPLOYMENT.md's
-# "Domain vs. no domain".
+# `npm run build`. Edit the default below, or export VITE_API_URL before
+# running this script (deploy/bake-ami.sh does the latter). Use your real
+# API domain if you have one (https://api.yourdomain.com), otherwise the
+# ALB's own DNS name (http://<your-alb-dns-name>, no trailing path) — see
+# DEPLOYMENT.md's "Domain vs. no domain".
 set -euo pipefail
 
-REPO_URL="git@github.com:ismailrz/aws-auto-scaling-group-3-tier-app.git"
+REPO_URL="https://github.com/ismailrz/aws-auto-scaling-group-3-tier-app.git"
 
 sudo dnf install -y nodejs20 git
 
@@ -23,7 +24,7 @@ sudo cp -r /opt/todo-src/frontend /opt/todo/frontend
 sudo rm -rf /opt/todo-src
 
 cd /opt/todo/frontend
-export VITE_API_URL="https://api.yourdomain.com"
+export VITE_API_URL="${VITE_API_URL:-https://api.yourdomain.com}"
 sudo -E npm ci
 sudo -E npm run build
 

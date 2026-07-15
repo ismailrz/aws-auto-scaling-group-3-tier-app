@@ -4,7 +4,7 @@
 # do not leave this instance running as a production node.
 set -euo pipefail
 
-REPO_URL="git@github.com:ismailrz/aws-auto-scaling-group-3-tier-app.git"
+REPO_URL="https://github.com/ismailrz/aws-auto-scaling-group-3-tier-app.git"
 
 sudo dnf install -y python3.12 python3.12-pip git jq
 

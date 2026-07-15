@@ -208,6 +208,17 @@ For each tier:
 Repeat this for every release. It's more manual than a CI/CD pipeline, but
 it's the mechanism actually worth understanding before automating it away.
 
+`deploy/bake-ami.sh` automates steps 1–4 above (launch builder → run the
+matching `bootstrap-ami.sh` via SSM → image it → terminate), if you'd rather
+not run each AWS CLI command by hand:
+
+```bash
+deploy/bake-ami.sh backend
+deploy/bake-ami.sh frontend http://<your-alb-dns-name-or-domain>
+```
+
+It prints the resulting AMI ID at the end.
+
 ## 7. Launch Templates
 
 One per tier. Console → EC2 → Launch Templates → Create:
