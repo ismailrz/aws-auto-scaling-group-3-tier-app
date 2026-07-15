@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "aws_profile" {
+  description = "Named AWS CLI profile to use. Leave empty to use the default credential chain (env vars, default profile, instance role, etc)."
+  type        = string
+  default     = ""
+}
+
 variable "project_name" {
   description = "Prefix used to name/tag every resource."
   type        = string
@@ -149,6 +155,12 @@ variable "db_name" {
 variable "db_username" {
   type    = string
   default = "todo"
+}
+
+variable "db_backup_retention_period" {
+  description = "Days of automated RDS backups to retain. Some AWS accounts (e.g. new/free-tier-restricted ones) reject values above 1 with a FreeTierRestrictionError — raise this once your account allows it."
+  type        = number
+  default     = 1
 }
 
 variable "db_deletion_protection" {
