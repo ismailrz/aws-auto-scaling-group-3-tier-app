@@ -2,7 +2,7 @@
 
 A minimal Todo CRUD app used to practice deploying a 3-tier architecture behind an AWS Auto Scaling Group (frontend ASG + backend ASG + RDS Postgres).
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for the AWS Auto Scaling Group deployment guide.
+Two ways to deploy the AWS Auto Scaling Group architecture: [DEPLOYMENT.md](./DEPLOYMENT.md) (manual, via the AWS Console/CLI) or [terraform/](./terraform) (the same architecture as code).
 
 ## Structure
 
@@ -47,6 +47,7 @@ App at http://localhost:3000.
 
 ## Deploying to AWS (Auto Scaling Groups)
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full production-grade walkthrough — VPC/subnets, RDS Multi-AZ, golden AMIs, Launch Templates, ALB host-based routing, and the Auto Scaling Group + target-tracking + instance-refresh setup for both tiers. The systemd unit files and bootstrap/user-data scripts it references live under [`deploy/`](./deploy).
+Same 3-tier architecture either way — VPC/subnets, RDS Multi-AZ, golden AMIs, Launch Templates, ALB routing, and Auto Scaling Groups with target-tracking + instance-refresh for both tiers. Pick one:
 
-Prefer infrastructure-as-code? [`terraform/`](./terraform) provisions the same architecture declaratively — see [`terraform/README.md`](./terraform/README.md).
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — manual, via the AWS Console/CLI. Click/type through every resource yourself; the goal is to *see* every moving part of an ASG rather than hide it behind IaC state. The systemd unit files and bootstrap/user-data scripts it references live under [`deploy/`](./deploy).
+- **[terraform/](./terraform)** — the same architecture provisioned declaratively. See [`terraform/README.md`](./terraform/README.md).
