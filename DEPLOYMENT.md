@@ -127,7 +127,12 @@ Console → RDS → Create database:
 - VPC: the one from §1, subnet group spanning both private-db subnets.
 - Public access: **No**.
 - Security group: `sg-rds`.
-- Backups: retain 7 days minimum; enable deletion protection.
+- Backups: retain 7 days minimum; enable deletion protection. New/free-tier
+  -restricted accounts can reject a retention period above 1 day with a
+  `FreeTierRestrictionError` — drop to 1 day if you hit that, and raise it
+  once your account allows it. Multi-AZ itself is a separate, non-free-tier
+  cost (an hourly charge for the standby instance) — expect a real charge for
+  it regardless of the backup setting.
 - Note the resulting endpoint hostname and the Secrets Manager secret ARN —
   both are needed in §5.
 

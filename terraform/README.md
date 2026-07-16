@@ -39,20 +39,41 @@ Same two paths as DEPLOYMENT.md, controlled by `var.use_domain`:
 Terraform consumes the AMI ID rather than producing it. Without a domain,
 that value has to be the ALB's DNS name, which doesn't exist until the ALB
 does. Terraform can't fix this for you because the AMI is built outside of
-it. Work around it the same way as the manual guide:
+it.
+
+Don't try to work around this with `terraform apply -target=aws_lb.this` —
+`-target` only pulls in resources the target *directly references*, not
+everything it needs to actually come up. The ALB needs the VPC's internet
+gateway and public route tables too, which aren't attributes of `aws_lb.this`
+itself, so a bare `-target=aws_lb.this` fails with `InvalidSubnet: ... has no
+internet gateway`. `deploy/bake-ami.sh` also needs the `todo-backend` /
+`todo-frontend` IAM instance profiles (`iam.tf`) to exist before it can launch
+a builder instance, and those aren't pulled in by targeting the ALB either.
+Chasing the right `-target` list by trial and error is exactly how this went
+wrong the first time.
+
+Instead, apply everything once with placeholder values, so every resource
+(including the IAM profiles and RDS) gets created but nothing wrong actually
+starts serving traffic:
 
 ```bash
-# 1. Create just the ALB first, to learn its DNS name.
-terraform apply -target=aws_lb.this
+# 1. Apply the whole stack with a real-but-generic AMI (any AL2023 AMI ID
+#    works — the app isn't running yet) and zero capacity on both ASGs.
+terraform apply \
+  -var backend_ami_id=ami-XXXXXXXXXXXXXXXXX \
+  -var frontend_ami_id=ami-XXXXXXXXXXXXXXXXX \
+  -var backend_min_size=0 -var backend_desired_capacity=0 \
+  -var frontend_min_size=0 -var frontend_desired_capacity=0
 
 terraform output alb_dns_name
 # e.g. todo-alb-1234567890.us-east-1.elb.amazonaws.com
 
-# 2. Bake the frontend AMI with that value as VITE_API_URL
-#    (deploy/frontend/bootstrap-ami.sh), then the backend AMI.
+# 2. Now that the IAM instance profiles exist, bake both real AMIs:
+deploy/bake-ami.sh backend
+deploy/bake-ami.sh frontend http://<the-alb-dns-name-from-step-1>
 
-# 3. Fill in backend_ami_id / frontend_ami_id in terraform.tfvars,
-#    then apply everything else.
+# 3. Put the two real AMI IDs into terraform.tfvars (along with the real
+#    min_size/desired_capacity you want), then apply with no overrides:
 terraform apply
 ```
 
@@ -78,6 +99,17 @@ terraform apply
 State is local (`terraform.tfstate`, gitignored) by default, which is fine
 solo. If more than one person/machine will run this, switch to the S3+DynamoDB
 backend commented out in `versions.tf` first.
+
+Set `aws_profile` in `terraform.tfvars` if you use a named AWS CLI profile
+rather than the default credential chain — note this only configures the
+Terraform provider; `deploy/bake-ami.sh` calls the AWS CLI directly, so it
+needs the same profile active in your shell too (`export AWS_PROFILE=...`).
+
+New/free-tier-restricted AWS accounts can reject `backup_retention_period`
+values above 1 with a `FreeTierRestrictionError` — `db_backup_retention_period`
+defaults to `1` for that reason; raise it once your account allows it. RDS
+Multi-AZ (`rds.tf`, always on) is a separate, non-free-tier cost — expect an
+hourly charge for the standby instance regardless of backup retention.
 
 ## Teardown
 
