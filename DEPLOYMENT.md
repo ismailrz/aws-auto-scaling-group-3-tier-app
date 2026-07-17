@@ -26,6 +26,48 @@ The backend ALB is **public**, not internal — the browser calls
 frontend would need to proxy API calls server-side instead; that's a
 follow-up hardening step, not covered here.
 
+## Quick overview (read this first)
+
+Each numbered section below is one AWS resource, in the order you actually
+create them. If you don't have a domain, skip straight to the **[no domain]**
+line in each step — that's the path most people practicing this will take.
+
+1. **Network (§1)** — Build a VPC with subnets in 2 AZs: one set public
+   (internet-facing), one private for your app servers, one private for the
+   database.
+2. **Security groups (§2)** — 4 firewall rules, each only letting the tier in
+   front of it in (internet → load balancer → app servers → database). No
+   SSH open anywhere.
+3. **Database (§3)** — Create the RDS Postgres database inside the private
+   subnets. AWS generates and stores the password for you.
+4. **IAM (§4)** — Give your app servers permission to use AWS tools (Session
+   Manager instead of SSH, and — for the backend — permission to read the
+   database password).
+5. **Secrets (§5)** — Decide how the backend turns that stored password into
+   a usable database connection string at startup.
+6. **[no domain] Create the load balancer first (§8)** — note the web
+   address it gives you; you need it in the next step.
+7. **Golden AMI (§6)** — Build one clean, ready-to-run server image per tier
+   (frontend, backend) with the app code already installed.
+8. **Launch Templates (§7)** — A blueprint telling AWS "when you launch a
+   new server for this tier, use this image, this security group, this
+   permission set."
+9. **Load balancer + routing (§8)** — Point the load balancer at both tiers
+   (if you did §8 in step 6 above, this just adds the routing rules).
+10. **Auto Scaling Groups (§9)** — The actual point of this whole guide: tell
+    AWS "always keep at least 2 servers running per tier, and automatically
+    add more when traffic/CPU goes up."
+11. **Watch it work (§10–§11)** — Optional: turn on logging/alarms, then send
+    fake traffic at it and watch new servers appear.
+12. **Harden later (§12)** — A checklist for turning this from a practice
+    setup into something production-ready (real domain, HTTPS, WAF, etc.) —
+    not required to get it running.
+
+The one thing to remember if you have no domain: **create the load balancer
+(§8) before baking the golden AMI (§6)** — the frontend needs the load
+balancer's address baked in, and that address doesn't exist until the load
+balancer does. Everything else follows top to bottom.
+
 ## Domain vs. no domain
 
 Pick one before you start — it changes a handful of concrete values used
